@@ -1,42 +1,39 @@
+const modifyHtml = (html) => {
+  // Add amp-custom tag to added CSS
+  html = html.replace(/<style data-vue-ssr/g, '<style amp-custom data-vue-ssr')
+  // Remove every script tag from generated HTML
+  html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+  // Add AMP script before </head>
+  const ampScript = '<script async src="https://cdn.ampproject.org/v0.js"></script>'
+  html = html.replace('</head>', ampScript + '</head>')
+  return html
+}
 
 export default {
-  // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'nuxt-amp-home-theather',
-    htmlAttrs: {
-      lang: 'en'
-    },
     meta: [
       { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' },
-      { name: 'format-detection', content: 'telephone=no' }
+      { name: 'viewport', content: 'width=device-width,minimum-scale=1' }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      { rel: 'canonical', href: '/' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css?family=Roboto' }
     ]
   },
-
-  // Global CSS: https://go.nuxtjs.dev/config-css
-  css: [
-  ],
-
-  // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [
-  ],
-
-  // Auto import components: https://go.nuxtjs.dev/config-components
-  components: true,
-
-  // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
-  buildModules: [
-  ],
-
-  // Modules: https://go.nuxtjs.dev/config-modules
-  modules: [
-  ],
-
-  // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {
+  css: [],
+  loading: false, // Disable loading bar since AMP will not generate a dynamic page
+  render: {
+    // Disable resourceHints since we don't load any scripts for AMP
+    resourceHints: false
+  },
+  hooks: {
+    // This hook is called before generatic static html files for SPA mode
+    'generate:page': (page) => {
+      page.html = modifyHtml(page.html)
+    },
+    // This hook is called before rendering the html to the browser
+    'render:route': (url, page, { req, res }) => {
+      page.html = modifyHtml(page.html)
+    }
   }
 }
